@@ -1,0 +1,14 @@
+[package]
+name = "libade_extract_key"
+version ="0.0.1"
+authors = ["hasezoey <hasezoey@gmail.com>"]
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+anyhow = "1.0"
+log = "0.4.16"
+
+[lib]
+name = "libade_extract_key"
+path = "src/lib.rs"

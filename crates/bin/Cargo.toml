@@ -1,0 +1,27 @@
+[package]
+name = "ade_key_extractor"
+version ="0.0.1"
+authors = ["hasezoey <hasezoey@gmail.com>"]
+edition = "2021"
+license = "MIT"
+description = "ADE key extractor for DeDRM"
+categories = []
+keywords = ["adobe", "keyextractor"]
+homepage = "https://github.com/hasezoey/adobe_key_extractor"
+repository = "https://github.com/hasezoey/adobe_key_extractor"
+readme = "README.md"
+include = [
+    "**/*.rs",
+    "Cargo.toml",
+]
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.1", features = ["derive", "wrap_help", "env"] }
+log = "0.4.16"
+flexi_logger = "0.24"
+libade_extract_key = { path = "../lib" }
+
+[[bin]]
+name = "ade-extract-key"
+path = "src/main.rs"
