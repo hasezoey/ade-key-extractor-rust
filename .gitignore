@@ -2,3 +2,5 @@
 Cargo.lock
 /node_modules
 .xwin*
+final-out
+out
