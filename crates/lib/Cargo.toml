@@ -1,6 +1,6 @@
 [package]
 name = "libade_extract_key"
-version ="0.0.1"
+version ="0.1.0"
 authors = ["hasezoey <hasezoey@gmail.com>"]
 edition = "2021"
 license = "MIT"
