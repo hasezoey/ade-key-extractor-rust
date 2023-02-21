@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use clap::{
 	ArgAction,
 	Parser,
+	Subcommand,
 };
 
 /// Trait to check and transform all Command Structures
@@ -27,6 +28,9 @@ pub struct CliDerive {
 	pub debugger:         bool,
 	/// Change output file name / directory
 	pub output_file_name: Option<PathBuf>,
+
+	#[command(subcommand)]
+	pub subcommands: Option<SubCommands>,
 }
 
 impl CliDerive {
@@ -64,6 +68,34 @@ impl Check for CliDerive {
 		}
 		if self.output_file_name.is_none() {
 			self.output_file_name = Some(PathBuf::from(KEY_DEFAULT_FILENAME));
+		}
+
+		return Ok(());
+	}
+}
+
+#[derive(Debug, Subcommand, Clone, PartialEq)]
+pub enum SubCommands {
+	AES(AESCli),
+}
+
+/// Import a Archive into the current Archive
+#[derive(Debug, Parser, Clone, PartialEq)]
+pub struct AESCli {
+	/// The key from the winapi-bin
+	pub key:       String,
+	/// The adept key from a previous run of the binary
+	pub adept_key: String,
+}
+
+impl Check for AESCli {
+	fn check(&mut self) -> Result<(), crate::Error> {
+		if self.key.is_empty() {
+			return Err(crate::Error::other("Key cannot be empty").into());
+		}
+
+		if self.adept_key.is_empty() {
+			return Err(crate::Error::other("Adept Key cannot be empty").into());
 		}
 
 		return Ok(());

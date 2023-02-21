@@ -54,12 +54,26 @@ fn main() -> anyhow::Result<()> {
 
 	trace!("CLI setup done");
 
-	let drive_info = decrypt::get_drive_info()?;
-	let cpu_info = decrypt::get_cpu_info()?;
-	let username = decrypt::get_win_username()?;
-	let adept_info = decrypt::get_adept_information()?;
+	let key: Vec<u8>;
 
-	let key = decrypt::decrypt(&drive_info, &cpu_info, &username, &adept_info)?;
+	if let Some(subcommand) = cli_matches.subcommands {
+		trace!("subcommand given");
+
+		match subcommand {
+			clap_conf::SubCommands::AES(aescli) => {
+				println!("Only running AES decrypt");
+
+				key = decrypt::aes_decrypt(&aescli.key, &aescli.adept_key)?;
+			},
+		}
+	} else {
+		let drive_info = decrypt::get_drive_info()?;
+		let cpu_info = decrypt::get_cpu_info()?;
+		let username = decrypt::get_win_username()?;
+		let adept_info = decrypt::get_adept_information()?;
+
+		key = decrypt::decrypt(&drive_info, &cpu_info, &username, &adept_info, true)?;
+	}
 
 	let file_path = cli_matches
 		.output_file_name

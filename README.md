@@ -27,6 +27,28 @@ The following expects Adobe Digital Editions (2.5) to already be set-up and auth
 cat ./ade_key.der
 ```
 
+Or if needing to run `ade-extract-winapi-bin.exe` separately (can be done on any wine / windows system, does not require ADE):
+
+```sh
+# Execute the program
+# May fail, the printed information can be used
+./ade-extract-key
+Entropy (hex): "some_entropy_hex"
+Device-Key (hex): "some_device_hex"
+Adept-Key (base64): "some_adept_base64"
+
+# Manually call the winapi-bin with the information
+# this program only prints the final key, not saved to disk
+wine ./ade-extract-winapi-bin.exe "some_entropy_hex" "some_device_hex"
+decrypted "some_decrypted_key"
+
+# Run the binary again, but only the last step to get the actual key
+./ade-extract-key aes "some_decrypted_key" "some_adept_base64"
+
+# If successful, the key should be in
+cat ./ade_key.der
+```
+
 ## Building
 
 Building this project requires both the linux target and a windows target:

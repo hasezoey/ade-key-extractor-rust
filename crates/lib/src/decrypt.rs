@@ -526,10 +526,9 @@ pub fn decrypt(
 	cpu_info: &CpuInfo,
 	user: &str,
 	adept_info: &AdeptInformation,
+	print_info: bool,
 ) -> anyhow::Result<Vec<u8>> {
 	// decrypt "privateLicenseKey" with "keykey"
-
-	probe_winapi_binary()?;
 
 	println!(
 		"DEBUG {:#?}, {:#?}, {:#?}, {:#?}",
@@ -539,7 +538,16 @@ pub fn decrypt(
 	let entropy_hex = encode_hex(&setup_entropy(drive_info, cpu_info, user)?);
 	let device_key_hex = adept_info.device_key.clone(); // the devicekey is already a hex
 
+	// Print info, so that the "winapi-bin" can be run separately
+	if print_info {
+		println!("Entropy (hex): \"{}\"", &entropy_hex);
+		println!("Device-Key (hex): \"{}\"", device_key_hex);
+		println!("Adept-Key (base64): \"{}\"", &adept_info.key);
+	}
+
 	trace!("Trying to run winapi-binary");
+
+	probe_winapi_binary()?;
 
 	let mut winapi_cmd = do_wine_like_cmd("ade-extract-winapi-bin.exe");
 	winapi_cmd.args([entropy_hex, device_key_hex]);
@@ -549,7 +557,15 @@ pub fn decrypt(
 		return crate::Error::other(format!("Failed to get captures for winapi_out"));
 	})?;
 	let decrypted_key_hex = &(&caps[1]).to_owned();
-	let decrypted_key = decode_hex(decrypted_key_hex).context("Failed to decode decrypted_key hex")?;
+
+	let final_key = aes_decrypt(&decrypted_key_hex, &adept_info.key)?;
+
+	return Ok(final_key);
+}
+
+/// AES decrypt the given "adept_key" with "key_hex"
+pub fn aes_decrypt(key_hex: &str, adept_key: &str) -> anyhow::Result<Vec<u8>> {
+	let decrypted_key = decode_hex(&key_hex).context("Failed to decode key_hex")?;
 
 	if decrypted_key.len() != 16 {
 		return Err(crate::Error::other(format!(
@@ -562,7 +578,7 @@ pub fn decrypt(
 	trace!("Trying to decrypt AES-CBC key");
 
 	let adept_key_bytes = base64::engine::general_purpose::STANDARD
-		.decode(&adept_info.key)
+		.decode(&adept_key)
 		.context("Failed to decode base64 adept privateLicenseKey")?;
 
 	use libaes::Cipher;
