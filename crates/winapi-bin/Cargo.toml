@@ -1,0 +1,23 @@
+[package]
+name = "ade-extract-winapi-bin"
+version ="0.0.1"
+authors = ["hasezoey <hasezoey@gmail.com>"]
+edition = "2021"
+license = "MIT"
+description = "winapi binary to call windows-exclusive functions"
+categories = []
+keywords = []
+homepage = "https://github.com/hasezoey/adobe_key_extractor"
+repository = "https://github.com/hasezoey/adobe_key_extractor"
+readme = "README.md"
+include = [
+    "**/*.rs",
+    "Cargo.toml",
+]
+
+[dependencies]
+winapi = { version = "0.3", features = ["dpapi", "impl-default"] }
+
+[[bin]]
+name = "ade-extract-winapi-bin"
+path = "src/main.rs"
