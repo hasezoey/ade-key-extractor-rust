@@ -8,7 +8,7 @@ This Project was created as a test to see if i could convert the [Python Script]
 
 ## Requirements
 
-Currently package `cpuid` is required.
+Nothing extra than a base linux system (at least when running, not building)
 
 ## Usage
 

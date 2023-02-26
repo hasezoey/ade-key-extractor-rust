@@ -1,4 +1,5 @@
 use std::{
+	arch::x86_64::__cpuid,
 	io::Write,
 	process::{
 		Command,
@@ -145,6 +146,7 @@ static LSCPU_VENDOR_REGEX: Lazy<Regex> = Lazy::new(|| {
 });
 
 /// Regex for parsing output from "cpuid"
+#[cfg(not(target_arch = "x86_64"))]
 static CPUID_MAGIC_NUMBER_REGEX: Lazy<Regex> = Lazy::new(|| {
 	return Regex::new(r"(?mi)^\s+0x00000001 0x00: eax=0x([^\s]+)").unwrap();
 });
@@ -176,7 +178,6 @@ pub fn get_cpu_info() -> anyhow::Result<CpuInfo> {
 	let vendor: String;
 	{
 		let vendor_cmd = new_command("lscpu");
-
 		let lscpu_out = exec_cmd(vendor_cmd, "lscpu")?;
 		let caps = LSCPU_VENDOR_REGEX.captures(&lscpu_out).ok_or_else(|| {
 			return crate::Error::other(format!("Failed to get captures for lscpu vendor"));
@@ -189,20 +190,38 @@ pub fn get_cpu_info() -> anyhow::Result<CpuInfo> {
 
 	let cpu_magic_number: Vec<u8>;
 	{
-		let mut cpuid_cmd = new_command("cpuid");
-		cpuid_cmd.args(["-1", "--raw"]);
+		// if x86_64, use cpuid instruction, otherwise try to use cpuid package
 
-		let cpuid_out = exec_cmd(cpuid_cmd, "cpuid").context("Command \"cpuid\" failed, is \"cpuid\" installed?")?;
-		let caps = CPUID_MAGIC_NUMBER_REGEX.captures(&cpuid_out).ok_or_else(|| {
-			return crate::Error::other(format!("Failed to get captures for cpuid magic number"));
-		})?;
+		// x86_64
+		#[cfg(target_arch = "x86_64")]
+		{
+			let res = unsafe { __cpuid(0x00001) };
+			let eax_bytes = res.eax.to_be_bytes();
+			trace!("Raw CPU Magic number: {:#?}", eax_bytes);
+			assert_eq!(eax_bytes.len(), 4); // assert that the length is 4
+								// skip first byte, because ADE does not use it
+			cpu_magic_number = eax_bytes[1..].to_vec();
+		}
 
-		let raw_magic_number = &caps[1];
+		// fallback to cpuid, though i dont know if this will even work on non x86
+		#[cfg(not(target_arch = "x86_64"))]
+		{
+			let mut cpuid_cmd = new_command("cpuid");
+			cpuid_cmd.args(["-1", "--raw"]);
 
-		trace!("Raw CPU Magic number: {raw_magic_number}");
+			let cpuid_out =
+				exec_cmd(cpuid_cmd, "cpuid").context("Command \"cpuid\" failed, is \"cpuid\" installed?")?;
+			let caps = CPUID_MAGIC_NUMBER_REGEX.captures(&cpuid_out).ok_or_else(|| {
+				return crate::Error::other(format!("Failed to get captures for cpuid magic number"));
+			})?;
 
-		cpu_magic_number =
-			decode_hex(raw_magic_number.trim()).context("Expected to decode raw_magic_number to Vec<u8>")?;
+			let raw_magic_number = &caps[1];
+
+			trace!("Raw CPU Magic number: {raw_magic_number}");
+
+			cpu_magic_number =
+				decode_hex(raw_magic_number.trim()).context("Expected to decode raw_magic_number to Vec<u8>")?;
+		}
 	}
 	info!("Got CPU magic number \"{:#?}\"", cpu_magic_number);
 
