@@ -530,9 +530,12 @@ pub fn decrypt(
 ) -> anyhow::Result<Vec<u8>> {
 	// decrypt "privateLicenseKey" with "keykey"
 
-	println!(
+	trace!(
 		"DEBUG {:#?}, {:#?}, {:#?}, {:#?}",
-		drive_info, cpu_info, user, adept_info
+		drive_info,
+		cpu_info,
+		user,
+		adept_info
 	);
 
 	let entropy_hex = encode_hex(&setup_entropy(drive_info, cpu_info, user)?);
