@@ -91,11 +91,11 @@ pub struct AESCli {
 impl Check for AESCli {
 	fn check(&mut self) -> Result<(), crate::Error> {
 		if self.key.is_empty() {
-			return Err(crate::Error::other("Key cannot be empty").into());
+			return Err(crate::Error::other("Key cannot be empty"));
 		}
 
 		if self.adept_key.is_empty() {
-			return Err(crate::Error::other("Adept Key cannot be empty").into());
+			return Err(crate::Error::other("Adept Key cannot be empty"));
 		}
 
 		return Ok(());

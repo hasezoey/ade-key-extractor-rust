@@ -109,8 +109,8 @@ pub fn get_drive_info() -> anyhow::Result<DriveInfo> {
 
 		let root_dir_out = exec_wine_cmd(root_dir_cmd)?;
 		root_dir = root_dir_out
-			.split("\\")
-			.nth(0)
+			.split('\\')
+			.next()
 			.ok_or_else(|| return crate::Error::other(format!("Failed to split at \"\\\" with \"{}\"", root_dir_out)))?
 			.to_owned();
 	}
@@ -124,7 +124,7 @@ pub fn get_drive_info() -> anyhow::Result<DriveInfo> {
 		let serial_out = exec_wine_cmd(serial_cmd)?;
 
 		let caps = PARSE_SERIAL_REGEX.captures(&serial_out).ok_or_else(|| {
-			return crate::Error::other(format!("Failed to get captures for Volume Serial Number output"));
+			return crate::Error::other("Failed to get captures for Volume Serial Number output".to_string());
 		})?;
 		let serial_hex = &caps[1].replace('-', "");
 
@@ -180,9 +180,9 @@ pub fn get_cpu_info() -> anyhow::Result<CpuInfo> {
 		let vendor_cmd = new_command("lscpu");
 		let lscpu_out = exec_cmd(vendor_cmd, "lscpu")?;
 		let caps = LSCPU_VENDOR_REGEX.captures(&lscpu_out).ok_or_else(|| {
-			return crate::Error::other(format!("Failed to get captures for lscpu vendor"));
+			return crate::Error::other("Failed to get captures for lscpu vendor".to_string());
 		})?;
-		vendor = (&caps[1]).to_owned();
+		vendor = caps[1].to_owned();
 	}
 	info!("Got vendor \"{vendor}\"");
 
@@ -226,8 +226,8 @@ pub fn get_cpu_info() -> anyhow::Result<CpuInfo> {
 	info!("Got CPU magic number \"{:#?}\"", cpu_magic_number);
 
 	return Ok(CpuInfo {
-		cpu_magic_number: cpu_magic_number,
-		cpu_vendor:       vendor,
+		cpu_magic_number,
+		cpu_vendor: vendor,
 	});
 }
 
@@ -256,10 +256,10 @@ fn get_win_username_adept() -> anyhow::Result<String> {
 
 	let adept_username_out = exec_wine_cmd(adept_username_cmd)?;
 	let caps = ADEPT_USERNAME_REGEX.captures(&adept_username_out).ok_or_else(|| {
-		return crate::Error::other(format!("Failed to get captures for adept username"));
+		return crate::Error::other("Failed to get captures for adept username".to_string());
 	})?;
 
-	let username = (&caps[1]).to_owned();
+	let username = caps[1].to_owned();
 
 	info!("Got username from Adept \"{username}\"");
 	return Ok(username);
@@ -309,12 +309,12 @@ static ADEPT_PARSE_VALUE_REGEX: Lazy<Regex> = Lazy::new(|| {
 /// Helper function to parse the "user" reg-entry
 fn adept_information_parse_user(val: &str) -> Option<String> {
 	let caps = ADEPT_PARSE_VALUE_REGEX
-		.captures(&val)
+		.captures(val)
 		.ok_or_else(|| {
-			return crate::Error::other(format!("Failed to get captures for adept-parse \"user\""));
+			return crate::Error::other("Failed to get captures for adept-parse \"user\"".to_string());
 		})
 		.ok()?;
-	return Some((&caps[1]).to_owned());
+	return Some(caps[1].to_owned());
 }
 
 /// Regex for parsing output from "cpuid"
@@ -325,23 +325,23 @@ static ADEPT_PARSE_USERNAME_REGEX: Lazy<Regex> = Lazy::new(|| {
 /// Helper function to parse the "username" reg-entry
 fn adept_information_parse_username(val: &str) -> Option<(String, String)> {
 	let caps = ADEPT_PARSE_USERNAME_REGEX
-		.captures(&val)
+		.captures(val)
 		.ok_or_else(|| {
-			return crate::Error::other(format!("Failed to get captures for adept-parse \"username\""));
+			return crate::Error::other("Failed to get captures for adept-parse \"username\"".to_string());
 		})
 		.ok()?;
-	return Some(((&caps[1]).to_owned(), (&caps[2]).to_owned()));
+	return Some((caps[1].to_owned(), caps[2].to_owned()));
 }
 
 /// Helper function to parse the "privateLicenseKey" reg-entry
 fn adept_information_parse_key(val: &str) -> Option<String> {
 	let caps = ADEPT_PARSE_VALUE_REGEX
-		.captures(&val)
+		.captures(val)
 		.ok_or_else(|| {
-			return crate::Error::other(format!("Failed to get captures for adept-parse \"key\""));
+			return crate::Error::other("Failed to get captures for adept-parse \"key\"".to_string());
 		})
 		.ok()?;
-	return Some((&caps[1]).to_owned());
+	return Some(caps[1].to_owned());
 }
 
 /// Regex for parsing output from "cpuid"
@@ -453,9 +453,9 @@ pub fn get_adept_information() -> anyhow::Result<AdeptInformation> {
 
 		let adept_device_key_out = exec_wine_cmd(adept_device_key_cmd)?;
 		let caps = ADEPT_DEVICE_KEY_REGEX.captures(&adept_device_key_out).ok_or_else(|| {
-			return crate::Error::other(format!("Failed to get captures for adept device key"));
+			return crate::Error::other("Failed to get captures for adept device key".to_string());
 		})?;
-		device_key = (&caps[1]).to_owned();
+		device_key = caps[1].to_owned();
 	}
 
 	// find id with "credentials"
@@ -473,7 +473,7 @@ pub fn get_adept_information() -> anyhow::Result<AdeptInformation> {
 	let caps = ADEPT_ACTIVATION_SUBENTRY_REGEX
 		.captures(&adept_sub_reg_out)
 		.ok_or_else(|| {
-			return crate::Error::other(format!("Failed to get captures for adept sub-entry list"));
+			return crate::Error::other("Failed to get captures for adept sub-entry list".to_string());
 		})?;
 
 	let credentails_path = format!("{ACTIVATION_KEY_PATH}\\{}", &caps[1]);
@@ -481,10 +481,10 @@ pub fn get_adept_information() -> anyhow::Result<AdeptInformation> {
 	let sub_info = get_adept_information_subentries(&credentails_path)?;
 
 	return Ok(AdeptInformation {
-		device_key: device_key,
-		key:        sub_info.key,
-		user:       sub_info.user,
-		username:   sub_info.username,
+		device_key,
+		key: sub_info.key,
+		user: sub_info.user,
+		username: sub_info.username,
 	});
 }
 
@@ -586,18 +586,18 @@ pub fn decrypt(
 
 	let winapi_out = exec_wine_cmd(winapi_cmd)?;
 	let caps = WINAPI_DECRYPTED_REGEX.captures(&winapi_out).ok_or_else(|| {
-		return crate::Error::other(format!("Failed to get captures for winapi_out"));
+		return crate::Error::other("Failed to get captures for winapi_out".to_string());
 	})?;
-	let decrypted_key_hex = &(&caps[1]).to_owned();
+	let decrypted_key_hex = &caps[1].to_owned();
 
-	let final_key = aes_decrypt(&decrypted_key_hex, &adept_info.key)?;
+	let final_key = aes_decrypt(decrypted_key_hex, &adept_info.key)?;
 
 	return Ok(final_key);
 }
 
 /// AES decrypt the given "adept_key" with "key_hex"
 pub fn aes_decrypt(key_hex: &str, adept_key: &str) -> anyhow::Result<Vec<u8>> {
-	let decrypted_key = decode_hex(&key_hex).context("Failed to decode key_hex")?;
+	let decrypted_key = decode_hex(key_hex).context("Failed to decode key_hex")?;
 
 	if decrypted_key.len() != 16 {
 		return Err(crate::Error::other(format!(
@@ -610,7 +610,7 @@ pub fn aes_decrypt(key_hex: &str, adept_key: &str) -> anyhow::Result<Vec<u8>> {
 	trace!("Trying to decrypt AES-CBC key");
 
 	let adept_key_bytes = base64::engine::general_purpose::STANDARD
-		.decode(&adept_key)
+		.decode(adept_key)
 		.context("Failed to decode base64 adept privateLicenseKey")?;
 
 	use libaes::Cipher;
