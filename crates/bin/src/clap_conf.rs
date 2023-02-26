@@ -75,6 +75,7 @@ impl Check for CliDerive {
 }
 
 #[derive(Debug, Subcommand, Clone, PartialEq)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum SubCommands {
 	AES(AESCli),
 }
