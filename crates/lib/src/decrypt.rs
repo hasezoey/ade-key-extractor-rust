@@ -544,6 +544,11 @@ fn encode_hex(bytes: &[u8]) -> String {
 	return s;
 }
 
+/// Regex for parsing output from "cpuid"
+static WINAPI_DECRYPTED_REGEX: Lazy<Regex> = Lazy::new(|| {
+	return Regex::new(r#"(?m)^decrypted "([^"]+)"$"#).unwrap();
+});
+
 /// Decrypt the key with the given information
 pub fn decrypt(
 	drive_info: &DriveInfo,
@@ -580,7 +585,7 @@ pub fn decrypt(
 	winapi_cmd.args([entropy_hex, device_key_hex]);
 
 	let winapi_out = exec_wine_cmd(winapi_cmd)?;
-	let caps = ADEPT_DEVICE_KEY_REGEX.captures(&winapi_out).ok_or_else(|| {
+	let caps = WINAPI_DECRYPTED_REGEX.captures(&winapi_out).ok_or_else(|| {
 		return crate::Error::other(format!("Failed to get captures for winapi_out"));
 	})?;
 	let decrypted_key_hex = &(&caps[1]).to_owned();
