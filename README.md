@@ -4,7 +4,7 @@ DeDRM's Adobe (2.5) key extractor re-written in rust, with the goal being to not
 
 ## Motivation
 
-This Project was created as a test to see if i could convert the [Python Script](https://github.com/noDRM/DeDRM_tools/blob/master/DeDRM_plugin/adobekey.py) to a rust project, because wine somehow didnt allow me to install python 3 and in python 2 wouldnt let me install pycrypto.
+This Project was created as a test to see if i could convert the [Python Script](https://github.com/noDRM/DeDRM_tools/blob/master/DeDRM_plugin/adobekey.py) to a rust project, because i couldnt install to install python 3 in wine ([which since i have found the reason why](https://bugs.winehq.org/show_bug.cgi?id=54592)) and in python 2 wouldnt let me install pycrypto.
 
 ## Requirements
 
@@ -27,7 +27,7 @@ The following expects Adobe Digital Editions (2.5) to already be set-up and auth
 cat ./ade_key.der
 ```
 
-Or if needing to run `ade-extract-winapi-bin.exe` separately (can be done on any wine / windows system, does not require ADE):
+Or if needing to run `ade-extract-winapi-bin.exe` separately (can be done on any wine / windows system, does not require ADE to run `ade-extract-winapi-bin.exe`):
 
 ```sh
 # Execute the program
