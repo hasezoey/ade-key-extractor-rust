@@ -276,7 +276,12 @@ fn get_win_username_echo() -> anyhow::Result<String> {
 	let mut echo_username_cmd = do_wine_like_cmd("cmd");
 	echo_username_cmd.args(["/c", "echo", "%username%"]);
 
-	let username = exec_wine_cmd(echo_username_cmd)?;
+	let username = {
+		let mut tmp = exec_wine_cmd(echo_username_cmd)?;
+		let trim_len = tmp.trim_end().len();
+		tmp.truncate(trim_len);
+		tmp
+	};
 
 	info!("Got username from echo \"{username}\"");
 	return Ok(username);
