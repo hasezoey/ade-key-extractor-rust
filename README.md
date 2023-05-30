@@ -27,7 +27,7 @@ The following expects Adobe Digital Editions (2.5) to already be set-up and auth
 cat ./ade_key.der
 ```
 
-Or if needing to run `ade-extract-winapi-bin.exe` separately (can be done on any wine / windows system, does not require ADE to run `ade-extract-winapi-bin.exe`):
+Or if `ade-extract-key` is not successfull but still printed 3 values, then `ade-extract-winapi-bin.exe` can be run separately to transform the key, and then requires another run of `ade-extract-key` to get the final key.
 
 ```sh
 # Execute the program
