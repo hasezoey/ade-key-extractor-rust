@@ -82,9 +82,7 @@ For usage of the final binaries (in `./final-bin`), see [Usage](#usage).
 
 ### Wine does not let the windows binary run
 
-Currently it is known that wine out of some reason does not wanna run the windows binary, there may be a package missing, but i have not been able to figure out what is missing.
-
-Example Errors include:
+If wine crashed with the following error, and the script / binary is located on a `ihc` filesystem, try again on a different filesystem, see [this wine bug](https://bugs.winehq.org/show_bug.cgi?id=54592)
 
 ```txt
 wine: Unhandled page fault ...
