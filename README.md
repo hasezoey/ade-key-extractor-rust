@@ -68,14 +68,14 @@ cargo install xwin
 xwin --accept-license splat --output ./.xwin
 
 # Compile the project for linux
-cargo build
+cargo build --release
 # Compile the windows binary
-cargo build --target=x86_64-pc-windows-msvc --bin ade-extract-winapi-bin
+cargo build --release --target=x86_64-pc-windows-msvc --bin ade-extract-winapi-bin
 
 # Copy output files into a out directory
 mkdir ./final-bin
-cp ./target/debug/ade-extract-key ./final-bin/
-cp ./target/x86_64-pc-windows-msvc/debug/ade-extract-winapi-bin.exe ./final-bin
+cp ./target/release/ade-extract-key ./final-bin/
+cp ./target/x86_64-pc-windows-msvc/release/ade-extract-winapi-bin.exe ./final-bin
 ```
 
 For usage of the final binaries (in `./final-bin`), see [Usage](#usage).
