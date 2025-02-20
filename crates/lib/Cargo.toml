@@ -21,3 +21,6 @@ base64 = "0.21"
 [lib]
 name = "libade_extract_key"
 path = "src/lib.rs"
+
+[lints]
+workspace = true

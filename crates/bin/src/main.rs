@@ -7,7 +7,10 @@ use std::io::{
 };
 
 use flexi_logger::LogSpecification;
-use libade_extract_key::*;
+use libade_extract_key::{
+	decrypt,
+	invoke_vscode_debugger,
+};
 
 use anyhow::Context;
 

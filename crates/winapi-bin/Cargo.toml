@@ -19,3 +19,6 @@ winapi = { version = "0.3", features = ["dpapi", "impl-default"] }
 [[bin]]
 name = "ade-extract-winapi-bin"
 path = "src/main.rs"
+
+[lints]
+workspace = true
