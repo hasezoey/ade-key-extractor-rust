@@ -1,5 +1,5 @@
 /*!
- * TODO
+ * The Library where all the functions to gather all the data and the decryption happens, except for what needs the winapi specifically
  */
 
 #[macro_use]
@@ -9,10 +9,6 @@ pub mod decrypt;
 pub mod error;
 
 pub type Error = error::ExtractorError;
-
-pub fn test() {
-	println!("lib");
-}
 
 /// Debug function to start vscode-lldb debugger from external console
 /// Only compiled when the target is "debug"
