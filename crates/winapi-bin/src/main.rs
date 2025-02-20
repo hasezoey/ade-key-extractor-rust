@@ -46,9 +46,7 @@ fn main() {
 	let mut entropy = decode_hex(entropy).expect("Expected to successfully decode entropy from hex");
 	let mut device_key_string = decode_hex(device_key).expect("Expected to successfully decode data from hex");
 
-	let out_string: String;
-
-	unsafe {
+	let out_string: String = unsafe {
 		let mut blob_in = winapi::um::wincrypt::CRYPTOAPI_BLOB {
 			cbData: (device_key_string.len() + 1) as u32,
 			pbData: device_key_string.as_mut_ptr(),
@@ -83,8 +81,8 @@ fn main() {
 
 		let out_bytes = std::slice::from_raw_parts(blob_out.pbData, blob_out.cbData as usize);
 
-		out_string = encode_hex(out_bytes);
-	}
+		encode_hex(out_bytes)
+	};
 
 	println!("decrypted {:#?}", out_string);
 
