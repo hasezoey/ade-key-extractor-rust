@@ -161,12 +161,6 @@ pub fn get_drive_info() -> anyhow::Result<DriveInfo> {
 // 	return Ok(caps[1].to_owned());
 // }
 
-/// Regex for parsing output from "cpuid"
-#[cfg(not(target_arch = "x86_64"))]
-static CPUID_MAGIC_NUMBER_REGEX: Lazy<Regex> = Lazy::new(|| {
-	return Regex::new(r"(?mi)^\s+0x00000001 0x00: eax=0x([^\s]+)").unwrap();
-});
-
 #[derive(Debug)]
 pub struct CpuInfo {
 	/// The Vendor of the CPU
@@ -220,26 +214,6 @@ pub fn get_cpu_info() -> anyhow::Result<CpuInfo> {
 
 			// skip first byte, because ADE does not use it
 			cpu_magic_number = eax_bytes[1..].to_vec();
-		}
-
-		// fallback to cpuid, though i dont know if this will even work on non x86
-		#[cfg(not(target_arch = "x86_64"))]
-		{
-			let mut cpuid_cmd = new_command("cpuid");
-			cpuid_cmd.args(["-1", "--raw"]);
-
-			let cpuid_out =
-				exec_cmd(cpuid_cmd, "cpuid").context("Command \"cpuid\" failed, is \"cpuid\" installed?")?;
-			let caps = CPUID_MAGIC_NUMBER_REGEX.captures(&cpuid_out).ok_or_else(|| {
-				return crate::Error::no_captures("cpuid magic number");
-			})?;
-
-			let raw_magic_number = &caps[1];
-
-			trace!("Raw CPU Magic number: {raw_magic_number}");
-
-			cpu_magic_number =
-				decode_hex(raw_magic_number.trim()).context("Expected to decode raw_magic_number to Vec<u8>")?;
 		}
 	}
 	info!("Got CPU magic number \"{:#?}\"", cpu_magic_number);
