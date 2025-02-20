@@ -364,7 +364,7 @@ struct AdeptInformationSubEntry {
 /// Helper function to parse through all the sub-entries for a "user", "username" and "privateLicenseKey"
 fn get_adept_information_subentries(path: &str) -> anyhow::Result<AdeptInformationSubEntry> {
 	// find id with "user", "username" & "privateLicenseKey"
-	// TODO exec and parse output
+
 	// ine reg query HKEY_CURRENT_USER\\Software\\Adobe\\Adept\\Activation\\0000 /s
 	// expected output:
 	// (many)
