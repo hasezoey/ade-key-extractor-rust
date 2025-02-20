@@ -186,8 +186,6 @@ pub fn get_cpu_info() -> anyhow::Result<CpuInfo> {
 	}
 	info!("Got vendor \"{vendor}\"");
 
-	// TODO: consider to use arch::x86_64::__cpuid()
-
 	let cpu_magic_number: Vec<u8>;
 	{
 		// if x86_64, use cpuid instruction, otherwise try to use cpuid package
@@ -199,7 +197,8 @@ pub fn get_cpu_info() -> anyhow::Result<CpuInfo> {
 			let eax_bytes = res.eax.to_be_bytes();
 			trace!("Raw CPU Magic number: {:#?}", eax_bytes);
 			assert_eq!(eax_bytes.len(), 4); // assert that the length is 4
-								   // skip first byte, because ADE does not use it
+
+			// skip first byte, because ADE does not use it
 			cpu_magic_number = eax_bytes[1..].to_vec();
 		}
 
