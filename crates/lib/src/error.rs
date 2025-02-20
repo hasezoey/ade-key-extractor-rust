@@ -14,6 +14,9 @@ pub enum ExtractorError {
 	RegistryKeyNotFound(&'static str, &'static str),
 
 	#[error("{0}")]
+	AssertionFailed(String),
+
+	#[error("{0}")]
 	Other(String),
 }
 
@@ -26,6 +29,11 @@ impl ExtractorError {
 	/// Error for when not being able to find a specific registry key
 	pub fn no_adept_reg_key(key: &'static str) -> Self {
 		return Self::RegistryKeyNotFound("Adept", key);
+	}
+
+	/// Error for when a assertion / expectation failed, without panicing
+	pub fn assertion_failed(msg: String) -> Self {
+		return Self::AssertionFailed(msg);
 	}
 
 	/// Error with arbitrary, one-off meaning

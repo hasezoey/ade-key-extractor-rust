@@ -196,7 +196,15 @@ pub fn get_cpu_info() -> anyhow::Result<CpuInfo> {
 			let res = unsafe { __cpuid(0x00001) };
 			let eax_bytes = res.eax.to_be_bytes();
 			trace!("Raw CPU Magic number: {:#?}", eax_bytes);
-			assert_eq!(eax_bytes.len(), 4); // assert that the length is 4
+
+			// paranoia check
+			if eax_bytes.len() != 4 {
+				return Err(crate::Error::assertion_failed(format!(
+					"Expected cpuid EAX bytes to be length 4, got {}",
+					eax_bytes.len()
+				))
+				.into());
+			}
 
 			// skip first byte, because ADE does not use it
 			cpu_magic_number = eax_bytes[1..].to_vec();
@@ -290,11 +298,9 @@ fn get_win_username_echo() -> anyhow::Result<String> {
 pub fn get_win_username() -> anyhow::Result<String> {
 	let adept_res = get_win_username_adept();
 
-	if adept_res.is_ok() {
+	let Err(adept_err) = adept_res else {
 		return adept_res;
-	}
-
-	let adept_err = adept_res.expect_err("Expected Err value, should have returned earlier on Ok");
+	};
 	info!("Adept username failed {}", adept_err);
 
 	return get_win_username_echo();
@@ -594,7 +600,7 @@ pub fn aes_decrypt(key_hex: &str, adept_key: &str) -> anyhow::Result<Vec<u8>> {
 	let decrypted_key = decode_hex(key_hex).context("Failed to decode key_hex")?;
 
 	if decrypted_key.len() != 16 {
-		return Err(crate::Error::other(format!(
+		return Err(crate::Error::assertion_failed(format!(
 			"decrypted key is not the proper size, expected 16, got {}",
 			decrypted_key.len()
 		))
