@@ -53,7 +53,7 @@ jobs:
           targets: x86_64-pc-windows-msvc
       - uses: taiki-e/install-action@v2
         with:
-          tool: cargo-xwin
+          tool: xwin
       - name: Load xwin cache
         # cache the package so that we dont need to hit the xwin / microsoft server so often
         id: cache-xwin
