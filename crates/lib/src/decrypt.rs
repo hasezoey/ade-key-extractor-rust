@@ -15,6 +15,10 @@ use byteorder::{
 };
 use once_cell::sync::Lazy;
 use regex::Regex;
+use sysinfo::{
+	CpuRefreshKind,
+	RefreshKind,
+};
 
 const DEVICE_KEY_PATH: &str = r"HKEY_CURRENT_USER\Software\Adobe\Adept\Device";
 const ACTIVATION_KEY_PATH: &str = r"HKEY_CURRENT_USER\Software\Adobe\Adept\Activation";
@@ -56,22 +60,22 @@ fn exec_wine_cmd(mut cmd: Command) -> anyhow::Result<String> {
 	return Ok(as_string);
 }
 
-/// execute a given command and print surrounding information
-fn exec_cmd(mut cmd: Command, cmd_type: &str) -> anyhow::Result<String> {
-	let cmd_out = cmd
-		.stderr(Stdio::null())
-		.stdin(Stdio::null())
-		.stdout(Stdio::piped())
-		.spawn()
-		.context(format!("Failed to spawn {cmd_type} command"))?
-		.wait_with_output()
-		.context(format!("Failed to wait for output of {cmd_type} command"))?;
+// /// execute a given command and print surrounding information
+// fn exec_cmd(mut cmd: Command, cmd_type: &str) -> anyhow::Result<String> {
+// 	let cmd_out = cmd
+// 		.stderr(Stdio::null())
+// 		.stdin(Stdio::null())
+// 		.stdout(Stdio::piped())
+// 		.spawn()
+// 		.context(format!("Failed to spawn {cmd_type} command"))?
+// 		.wait_with_output()
+// 		.context(format!("Failed to wait for output of {cmd_type} command"))?;
 
-	let as_string =
-		String::from_utf8(cmd_out.stdout).context(format!("Failed converting {cmd_type} output to utf8 string"))?;
+// 	let as_string =
+// 		String::from_utf8(cmd_out.stdout).context(format!("Failed converting {cmd_type} output to utf8 string"))?;
 
-	return Ok(as_string);
-}
+// 	return Ok(as_string);
+// }
 
 /// Regex for parsing output from "vol"
 static PARSE_SERIAL_REGEX: Lazy<Regex> = Lazy::new(|| {
@@ -140,10 +144,22 @@ pub fn get_drive_info() -> anyhow::Result<DriveInfo> {
 	});
 }
 
-/// Regex for parsing output from "lscpu"
-static LSCPU_VENDOR_REGEX: Lazy<Regex> = Lazy::new(|| {
-	return Regex::new(r"(?mi)Vendor ID:\s+([^\r\n]+)").unwrap();
-});
+// This is a old way, but keeping this for reference
+// /// Get the vendor-id via `lscpu` linux command
+// fn get_vendor_id_lscpu() -> anyhow::Result<String> {
+// 	/// Regex for parsing output from "lscpu"
+// 	static LSCPU_VENDOR_REGEX: Lazy<Regex> = Lazy::new(|| {
+// 		return Regex::new(r"(?mi)Vendor ID:\s+([^\r\n]+)").unwrap();
+// 	});
+
+// 	// old way with "lscpu" linux command
+// 	let vendor_cmd = new_command("lscpu");
+// 	let lscpu_out = exec_cmd(vendor_cmd, "lscpu")?;
+// 	let caps = LSCPU_VENDOR_REGEX.captures(&lscpu_out).ok_or_else(|| {
+// 		return crate::Error::no_captures("lscpu vendor");
+// 	})?;
+// 	return Ok(caps[1].to_owned());
+// }
 
 /// Regex for parsing output from "cpuid"
 #[cfg(not(target_arch = "x86_64"))]
@@ -175,15 +191,11 @@ pub fn get_cpu_info() -> anyhow::Result<CpuInfo> {
 	// required output:
 	// a20f12 (as binary)
 
-	let vendor: String;
-	{
-		let vendor_cmd = new_command("lscpu");
-		let lscpu_out = exec_cmd(vendor_cmd, "lscpu")?;
-		let caps = LSCPU_VENDOR_REGEX.captures(&lscpu_out).ok_or_else(|| {
-			return crate::Error::no_captures("lscpu vendor");
-		})?;
-		vendor = caps[1].to_owned();
-	}
+	let vendor: String = {
+		let s = sysinfo::System::new_with_specifics(RefreshKind::nothing().with_cpu(CpuRefreshKind::everything()));
+
+		s.cpus().first().unwrap().vendor_id().to_owned()
+	};
 	info!("Got vendor \"{vendor}\"");
 
 	let cpu_magic_number: Vec<u8>;
