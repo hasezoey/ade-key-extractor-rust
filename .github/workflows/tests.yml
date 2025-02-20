@@ -50,8 +50,25 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ matrix.toolchain }}
-      - name: Run syntax check
+          targets: x86_64-pc-windows-msvc
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-xwin
+      - name: Load xwin cache
+        # cache the package so that we dont need to hit the xwin / microsoft server so often
+        id: cache-xwin
+        uses: actions/cache@v4
+        with:
+          path: |
+            .xwin
+            .xwin-cache
+          key: xwin
+      - name: install msvc
+        run: xwin --accept-license splat --output ./.xwin
+      - name: Build all binaries for linux
         run: cargo build --workspace --all-features
+      - name: Build windows / wine binaries
+        run: cargo build --target=x86_64-pc-windows-msvc --bin ade-extract-winapi-bin
       - name: Tests
         run: cargo test --workspace --all-features --no-fail-fast
         env:
