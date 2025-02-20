@@ -47,11 +47,9 @@ impl CliDerive {
 	/// Get if debug is enabled
 	/// Only able to be "true" in "debug" target
 	#[must_use]
+	#[cfg(debug_assertions)]
 	pub fn debug_enabled(&self) -> bool {
-		#[cfg(debug_assertions)]
 		return self.debugger;
-		#[cfg(not(debug_assertions))]
-		return false;
 	}
 }
 

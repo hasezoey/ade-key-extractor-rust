@@ -8,10 +8,7 @@ use std::io::{
 
 use anyhow::Context;
 use flexi_logger::LogSpecification;
-use libade_extract_key::{
-	decrypt,
-	invoke_vscode_debugger,
-};
+use libade_extract_key::decrypt;
 
 mod clap_conf;
 mod logger;
@@ -27,7 +24,7 @@ fn main() -> anyhow::Result<()> {
 	#[cfg(debug_assertions)]
 	if cli_matches.debug_enabled() {
 		warn!("Requesting Debugger");
-		invoke_vscode_debugger();
+		libade_extract_key::invoke_vscode_debugger();
 	}
 
 	log::info!("CLI Verbosity is {}", cli_matches.verbosity);
