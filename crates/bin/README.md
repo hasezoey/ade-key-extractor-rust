@@ -34,3 +34,23 @@ Wrote key to ./ade_key.der
 ```
 
 If you dont use the default wineprefix, then `WINEPREFIX` needs to be set to the correct prefix for all the commands shown above.
+
+`--help` Output:
+
+```txt
+ADE key extractor for DeDRM
+
+Usage: ade-extract-key [OPTIONS] [OUTPUT_FILE_NAME]
+       ade-extract-key [OPTIONS] [OUTPUT_FILE_NAME] <COMMAND>
+
+Commands:
+  aes  Resume at the AES decryption stage with the winapi decrypted key
+
+Arguments:
+  [OUTPUT_FILE_NAME]  Change output file name / directory
+
+Options:
+  -v, --verbosity...  Set Loggin verbosity (0 - Default - WARN, 1 - INFO, 2 - DEBUG, 3 - TRACE)
+  -h, --help          Print help
+  -V, --version       Print version
+```
