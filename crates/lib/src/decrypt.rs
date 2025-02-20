@@ -124,7 +124,7 @@ pub fn get_drive_info() -> anyhow::Result<DriveInfo> {
 		let serial_out = exec_wine_cmd(serial_cmd)?;
 
 		let caps = PARSE_SERIAL_REGEX.captures(&serial_out).ok_or_else(|| {
-			return crate::Error::other("Failed to get captures for Volume Serial Number output".to_string());
+			return crate::Error::no_captures("Volume Serial Number");
 		})?;
 		let serial_hex = &caps[1].replace('-', "");
 
@@ -180,7 +180,7 @@ pub fn get_cpu_info() -> anyhow::Result<CpuInfo> {
 		let vendor_cmd = new_command("lscpu");
 		let lscpu_out = exec_cmd(vendor_cmd, "lscpu")?;
 		let caps = LSCPU_VENDOR_REGEX.captures(&lscpu_out).ok_or_else(|| {
-			return crate::Error::other("Failed to get captures for lscpu vendor".to_string());
+			return crate::Error::no_captures("lscpu vendor");
 		})?;
 		vendor = caps[1].to_owned();
 	}
@@ -211,7 +211,7 @@ pub fn get_cpu_info() -> anyhow::Result<CpuInfo> {
 			let cpuid_out =
 				exec_cmd(cpuid_cmd, "cpuid").context("Command \"cpuid\" failed, is \"cpuid\" installed?")?;
 			let caps = CPUID_MAGIC_NUMBER_REGEX.captures(&cpuid_out).ok_or_else(|| {
-				return crate::Error::other(format!("Failed to get captures for cpuid magic number"));
+				return crate::Error::no_captures("cpuid magic number");
 			})?;
 
 			let raw_magic_number = &caps[1];
@@ -255,7 +255,7 @@ fn get_win_username_adept() -> anyhow::Result<String> {
 
 	let adept_username_out = exec_wine_cmd(adept_username_cmd)?;
 	let caps = ADEPT_USERNAME_REGEX.captures(&adept_username_out).ok_or_else(|| {
-		return crate::Error::other("Failed to get captures for adept username".to_string());
+		return crate::Error::no_captures("adept username");
 	})?;
 
 	let username = caps[1].to_owned();
@@ -310,7 +310,7 @@ fn adept_information_parse_user(val: &str) -> Option<String> {
 	let caps = ADEPT_PARSE_VALUE_REGEX
 		.captures(val)
 		.ok_or_else(|| {
-			return crate::Error::other("Failed to get captures for adept-parse \"user\"".to_string());
+			return crate::Error::no_captures("adept-parse \"user\"");
 		})
 		.ok()?;
 	return Some(caps[1].to_owned());
@@ -326,7 +326,7 @@ fn adept_information_parse_username(val: &str) -> Option<(String, String)> {
 	let caps = ADEPT_PARSE_USERNAME_REGEX
 		.captures(val)
 		.ok_or_else(|| {
-			return crate::Error::other("Failed to get captures for adept-parse \"username\"".to_string());
+			return crate::Error::no_captures("adept-parse \"username\"");
 		})
 		.ok()?;
 	return Some((caps[1].to_owned(), caps[2].to_owned()));
@@ -337,7 +337,7 @@ fn adept_information_parse_key(val: &str) -> Option<String> {
 	let caps = ADEPT_PARSE_VALUE_REGEX
 		.captures(val)
 		.ok_or_else(|| {
-			return crate::Error::other("Failed to get captures for adept-parse \"key\"".to_string());
+			return crate::Error::no_captures("adept-parse \"key\"");
 		})
 		.ok()?;
 	return Some(caps[1].to_owned());
@@ -399,18 +399,17 @@ fn get_adept_information_subentries(path: &str) -> anyhow::Result<AdeptInformati
 		}
 	}
 
-	if user.is_none() {
-		return Err(crate::Error::other("Could not find Adept \"user\" key").into());
-	}
-	let user = user.expect("Expected is_none to catch this");
-	if username.is_none() {
-		return Err(crate::Error::other("Could not find Adept \"username\" key").into());
-	}
-	let username = username.expect("Expected is_none to catch this");
-	if key.is_none() {
-		return Err(crate::Error::other("Could not find Adept \"privateLicenseKey\" key").into());
-	}
-	let key = key.expect("Expected is_none to catch this");
+	let Some(user) = user else {
+		return Err(crate::Error::no_adept_reg_key("user").into());
+	};
+
+	let Some(username) = username else {
+		return Err(crate::Error::no_adept_reg_key("username").into());
+	};
+
+	let Some(key) = key else {
+		return Err(crate::Error::no_adept_reg_key("privateLicenseKey").into());
+	};
 
 	return Ok(AdeptInformationSubEntry { key, user, username });
 }
@@ -452,7 +451,7 @@ pub fn get_adept_information() -> anyhow::Result<AdeptInformation> {
 
 		let adept_device_key_out = exec_wine_cmd(adept_device_key_cmd)?;
 		let caps = ADEPT_DEVICE_KEY_REGEX.captures(&adept_device_key_out).ok_or_else(|| {
-			return crate::Error::other("Failed to get captures for adept device key".to_string());
+			return crate::Error::no_captures("adept device key");
 		})?;
 		device_key = caps[1].to_owned();
 	}
@@ -472,7 +471,7 @@ pub fn get_adept_information() -> anyhow::Result<AdeptInformation> {
 	let caps = ADEPT_ACTIVATION_SUBENTRY_REGEX
 		.captures(&adept_sub_reg_out)
 		.ok_or_else(|| {
-			return crate::Error::other("Failed to get captures for adept sub-entry list".to_string());
+			return crate::Error::no_captures("adept sub-entry list");
 		})?;
 
 	let credentails_path = format!("{ACTIVATION_KEY_PATH}\\{}", &caps[1]);
@@ -514,11 +513,7 @@ fn probe_winapi_binary() -> anyhow::Result<()> {
 	let bin_path = std::path::Path::new("./ade-extract-winapi-bin.exe");
 
 	if !bin_path.exists() {
-		return Err(crate::Error::other(format!(
-			"Could not find \"ade-extract-winapi-bin.exe\" in \"{}\"",
-			std::env::current_dir()?.to_string_lossy()
-		))
-		.into());
+		return Err(crate::Error::NoBinary("ade-extract-winapi-bin.exe", std::env::current_dir()?).into());
 	}
 
 	return Ok(());
@@ -585,7 +580,7 @@ pub fn decrypt(
 
 	let winapi_out = exec_wine_cmd(winapi_cmd)?;
 	let caps = WINAPI_DECRYPTED_REGEX.captures(&winapi_out).ok_or_else(|| {
-		return crate::Error::other("Failed to get captures for winapi_out".to_string());
+		return crate::Error::no_captures("winapi \"decrypted\" output");
 	})?;
 	let decrypted_key_hex = &caps[1].to_owned();
 
