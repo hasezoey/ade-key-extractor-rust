@@ -68,7 +68,7 @@ jobs:
       - name: Build all binaries for linux
         run: cargo build --workspace --all-features
       - name: Build windows / wine binaries
-        run: cargo build --target=x86_64-pc-windows-msvc --bin ade-extract-winapi-bin
+        run: cargo build --target=x86_64-pc-windows-msvc
       - name: Tests
         run: cargo test --workspace --all-features --no-fail-fast
         env:
