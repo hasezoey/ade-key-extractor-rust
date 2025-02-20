@@ -1,19 +1,16 @@
 [package]
 name = "ade_key_extractor"
-version ="0.2.0"
-authors = ["hasezoey <hasezoey@gmail.com>"]
-edition = "2021"
-license = "MIT"
 description = "ADE key extractor for DeDRM"
+readme = "README.md"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
 categories = []
 keywords = ["adobe", "keyextractor"]
-homepage = "https://github.com/hasezoey/adobe_key_extractor"
-repository = "https://github.com/hasezoey/adobe_key_extractor"
-readme = "README.md"
-include = [
-    "**/*.rs",
-    "Cargo.toml",
-]
+include = ["**/*.rs", "Cargo.toml"]
 
 [dependencies]
 anyhow = { version = "1.0", features = ["backtrace"] }
