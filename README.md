@@ -17,6 +17,8 @@ To use this project 2 things are required:
 - The Linux binary (`ade-extract-key`)
 - The Windows binary (`ade-extract-winapi-bin.exe`)
 
+Those binaries are available pre-compiled in the [Github Releases Page](https://github.com/hasezoey/ade-key-extractor-rust/releases) as `binaries.tar.gz`.
+
 The following expects Adobe Digital Editions (2.5) to already be set-up and authorized:
 
 ```sh
