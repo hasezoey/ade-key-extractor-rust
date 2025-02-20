@@ -33,6 +33,9 @@ $ ./ade-extract-key aes "some_decrypted_key" "some_adept_base64"
 Wrote key to ./ade_key.der
 ```
 
+Note that alternatively, you can also build this binary for the windows target directly and execute everything in wine (also should work on windows directly).
+NOTE: the full windows version of `ade-extract-key` [requires wine 9 or later](https://github.com/rust-lang/rust/issues/128066).
+
 If you dont use the default wineprefix, then `WINEPREFIX` needs to be set to the correct prefix for all the commands shown above.
 
 `--help` Output:

@@ -29,10 +29,13 @@ fn new_command(cmd: &str) -> Command {
 }
 
 /// Create a new instance of [Command] with "wine"
+#[cfg(not(windows))]
 fn new_wine_cmd() -> Command {
 	return new_command("wine");
 }
 
+/// Execute a command inside wine
+#[cfg(not(windows))]
 fn do_wine_like_cmd(cmd_i: &str) -> Command {
 	// pass-through to direct exec
 	// return new_command(cmd);
@@ -44,38 +47,27 @@ fn do_wine_like_cmd(cmd_i: &str) -> Command {
 	return cmd;
 }
 
+/// Execute a command, without wine as we already are in a windows environment
+#[cfg(windows)]
+fn do_wine_like_cmd(cmd_i: &str) -> Command {
+	return new_command(cmd_i);
+}
+
 /// execute a given wine command and print surrounding information
-fn exec_wine_cmd(mut cmd: Command) -> anyhow::Result<String> {
+fn exec_cmd_and_wait(mut cmd: Command) -> anyhow::Result<String> {
 	let cmd_out = cmd
 		.stderr(Stdio::null())
 		.stdin(Stdio::null())
 		.stdout(Stdio::piped())
 		.spawn()
-		.context("Failed to spawn wine command")?
+		.context("Failed to spawn command")?
 		.wait_with_output()
-		.context("Failed to wait for output of wine command")?;
+		.context("Failed to wait for output of command")?;
 
-	let as_string = String::from_utf8(cmd_out.stdout).context("Failed converting wine output to utf8 string")?;
+	let as_string = String::from_utf8(cmd_out.stdout).context("Failed converting output to utf8 string")?;
 
 	return Ok(as_string);
 }
-
-// /// execute a given command and print surrounding information
-// fn exec_cmd(mut cmd: Command, cmd_type: &str) -> anyhow::Result<String> {
-// 	let cmd_out = cmd
-// 		.stderr(Stdio::null())
-// 		.stdin(Stdio::null())
-// 		.stdout(Stdio::piped())
-// 		.spawn()
-// 		.context(format!("Failed to spawn {cmd_type} command"))?
-// 		.wait_with_output()
-// 		.context(format!("Failed to wait for output of {cmd_type} command"))?;
-
-// 	let as_string =
-// 		String::from_utf8(cmd_out.stdout).context(format!("Failed converting {cmd_type} output to utf8 string"))?;
-
-// 	return Ok(as_string);
-// }
 
 /// Regex for parsing output from "vol"
 static PARSE_SERIAL_REGEX: Lazy<Regex> = Lazy::new(|| {
@@ -111,7 +103,7 @@ pub fn get_drive_info() -> anyhow::Result<DriveInfo> {
 		let mut root_dir_cmd = do_wine_like_cmd("cmd");
 		root_dir_cmd.args(["/c echo %SystemRoot%"]);
 
-		let root_dir_out = exec_wine_cmd(root_dir_cmd)?;
+		let root_dir_out = exec_cmd_and_wait(root_dir_cmd).context("cmd /c echo %SystemRoot%")?;
 		root_dir = root_dir_out
 			.split('\\')
 			.next()
@@ -125,7 +117,7 @@ pub fn get_drive_info() -> anyhow::Result<DriveInfo> {
 		let mut serial_cmd = do_wine_like_cmd("cmd");
 		serial_cmd.args(["/c", &format!("vol {root_dir}")]);
 
-		let serial_out = exec_wine_cmd(serial_cmd)?;
+		let serial_out = exec_cmd_and_wait(serial_cmd).context("cmd /c vol")?;
 
 		let caps = PARSE_SERIAL_REGEX.captures(&serial_out).ok_or_else(|| {
 			return crate::Error::no_captures("Volume Serial Number");
@@ -154,7 +146,7 @@ pub fn get_drive_info() -> anyhow::Result<DriveInfo> {
 
 // 	// old way with "lscpu" linux command
 // 	let vendor_cmd = new_command("lscpu");
-// 	let lscpu_out = exec_cmd(vendor_cmd, "lscpu")?;
+// 	let lscpu_out = exec_cmd_and_wait(vendor_cmd, "lscpu").context("lscpu")?;
 // 	let caps = LSCPU_VENDOR_REGEX.captures(&lscpu_out).ok_or_else(|| {
 // 		return crate::Error::no_captures("lscpu vendor");
 // 	})?;
@@ -247,7 +239,7 @@ fn get_win_username_adept() -> anyhow::Result<String> {
 		"username",
 	]);
 
-	let adept_username_out = exec_wine_cmd(adept_username_cmd)?;
+	let adept_username_out = exec_cmd_and_wait(adept_username_cmd).context("reg query DEVICE_KEY_PATH username")?;
 	let caps = ADEPT_USERNAME_REGEX.captures(&adept_username_out).ok_or_else(|| {
 		return crate::Error::no_captures("adept username");
 	})?;
@@ -270,7 +262,7 @@ fn get_win_username_echo() -> anyhow::Result<String> {
 	echo_username_cmd.args(["/c", "echo", "%username%"]);
 
 	let username = {
-		let mut tmp = exec_wine_cmd(echo_username_cmd)?;
+		let mut tmp = exec_cmd_and_wait(echo_username_cmd).context("cmd /c echo %username%")?;
 		let trim_len = tmp.trim_end().len();
 		tmp.truncate(trim_len);
 		tmp
@@ -371,7 +363,7 @@ fn get_adept_information_subentries(path: &str) -> anyhow::Result<AdeptInformati
 	let mut adept_sub_reg_cmd = do_wine_like_cmd("reg");
 	adept_sub_reg_cmd.args(["query", path, "/s"]);
 
-	let adept_sub_reg_out = exec_wine_cmd(adept_sub_reg_cmd)?;
+	let adept_sub_reg_out = exec_cmd_and_wait(adept_sub_reg_cmd).context("reg query adept subentries")?;
 
 	let mut user: Option<String> = None;
 	let mut username: Option<(String, String)> = None;
@@ -441,7 +433,7 @@ pub fn get_adept_information() -> anyhow::Result<AdeptInformation> {
 		let mut adept_device_key_cmd = do_wine_like_cmd("reg");
 		adept_device_key_cmd.args(["query", DEVICE_KEY_PATH, "/v", "key"]);
 
-		let adept_device_key_out = exec_wine_cmd(adept_device_key_cmd)?;
+		let adept_device_key_out = exec_cmd_and_wait(adept_device_key_cmd).context("reg query DEVICE_KEY_PATH key")?;
 		let caps = ADEPT_DEVICE_KEY_REGEX.captures(&adept_device_key_out).ok_or_else(|| {
 			return crate::Error::no_captures("adept device key");
 		})?;
@@ -459,7 +451,7 @@ pub fn get_adept_information() -> anyhow::Result<AdeptInformation> {
 	let mut adept_sub_reg_cmd = do_wine_like_cmd("reg");
 	adept_sub_reg_cmd.args(["query", ACTIVATION_KEY_PATH, "/s"]);
 
-	let adept_sub_reg_out = exec_wine_cmd(adept_sub_reg_cmd)?;
+	let adept_sub_reg_out = exec_cmd_and_wait(adept_sub_reg_cmd)?;
 	let caps = ADEPT_ACTIVATION_SUBENTRY_REGEX
 		.captures(&adept_sub_reg_out)
 		.ok_or_else(|| {
@@ -570,7 +562,7 @@ pub fn decrypt(
 	let mut winapi_cmd = do_wine_like_cmd("ade-extract-winapi-bin.exe");
 	winapi_cmd.args([entropy_hex, device_key_hex]);
 
-	let winapi_out = exec_wine_cmd(winapi_cmd)?;
+	let winapi_out = exec_cmd_and_wait(winapi_cmd).context("ade-extract-winapi-bin.exe")?;
 	let caps = WINAPI_DECRYPTED_REGEX.captures(&winapi_out).ok_or_else(|| {
 		return crate::Error::no_captures("winapi \"decrypted\" output");
 	})?;

@@ -57,11 +57,15 @@ Wrote key to ./ade_key.der
 cat ./ade_key.der
 ```
 
+Note that alternatively, you can also build this binary for the windows target directly and execute everything in wine (also should work on windows directly).
+Those windows-only binaries are available as `win-binaries.tar.gz` in [Github Releases Page](https://github.com/hasezoey/ade-key-extractor-rust/releases).
+NOTE: the full windows version of `ade-extract-key` [requires wine 9 or later](https://github.com/rust-lang/rust/issues/128066).
+
 If you dont use the default wineprefix, then `WINEPREFIX` needs to be set to the correct prefix for all the commands shown above.
 
-## Building
+## Building for Linux & wine
 
-Building this project requires both the linux target and a windows target:
+Building this way requires both the linux target and a windows target:
 
 ```sh
 # Add linux target
@@ -83,10 +87,35 @@ cargo build --release --target=x86_64-pc-windows-msvc --bin ade-extract-winapi-b
 # Copy output files into a out directory
 mkdir ./final-bin
 cp ./target/release/ade-extract-key ./final-bin/
-cp ./target/x86_64-pc-windows-msvc/release/ade-extract-winapi-bin.exe ./final-bin
+cp ./target/x86_64-pc-windows-msvc/release/ade-extract-winapi-bin.exe ./final-bin/
 ```
 
 For usage of the final binaries (in `./final-bin`), see [Usage](#usage).
+
+## Building for wine
+
+This way, only one target is build and everything can be directly executed within wine / windows, without requiring some parts in linux and some in wine:
+
+```sh
+# Add windows target
+rustup target add x86_64-pc-windows-msvc
+# Add the linux target too if you are using wine / building on linux
+rustup target add x86_64-unknown-linux-gnu
+
+# Install xwin, to manage msvc install
+cargo install xwin
+
+# Run xwin to install msvc
+xwin --accept-license splat --output ./.xwin
+
+# Compile the whole project as windows binaries
+cargo build --release --target=x86_64-pc-windows-msvc
+
+# Copy output files into a out directory
+mkdir ./final-bin
+cp ./target/x86_64-pc-windows-msvc/release/ade-extract-key.exe ./final-bin/
+cp ./target/x86_64-pc-windows-msvc/release/ade-extract-winapi-bin.exe ./final-bin/
+```
 
 ## Known Issues
 
