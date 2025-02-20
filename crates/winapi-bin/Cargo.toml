@@ -1,6 +1,6 @@
 [package]
 name = "ade-extract-winapi-bin"
-version = "0.1.0"
+version.workspace = true
 description = "winapi binary to call windows-exclusive functions"
 readme = "README.md"
 authors.workspace = true
