@@ -25,13 +25,10 @@ fn main() -> anyhow::Result<()> {
 
 	let cli_matches = clap_conf::CliDerive::custom_parse();
 
+	#[cfg(debug_assertions)]
 	if cli_matches.debug_enabled() {
 		warn!("Requesting Debugger");
-
-		#[cfg(debug_assertions)]
-		{
-			invoke_vscode_debugger();
-		}
+		invoke_vscode_debugger();
 	}
 
 	log::info!("CLI Verbosity is {}", cli_matches.verbosity);
