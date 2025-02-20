@@ -23,9 +23,14 @@ The following expects Adobe Digital Editions (2.5) to already be set-up and auth
 
 ```sh
 # Execute the program
-./ade-extract-key
+$ ./ade-extract-key
+Entropy (hex): "some_entropy_hex"
+Device-Key (hex): "some_device_hex"
+Adept-Key (base64): "some_adept_base64"
 
-# If successful, the key should be in
+Wrote key to ./ade_key.der
+
+# If successful, the key should be in the file mentioned above
 cat ./ade_key.der
 ```
 
@@ -34,22 +39,25 @@ Or if `ade-extract-key` is not successfull but still printed 3 values, then `ade
 ```sh
 # Execute the program
 # May fail, the printed information can be used
-./ade-extract-key
+$ ./ade-extract-key
 Entropy (hex): "some_entropy_hex"
 Device-Key (hex): "some_device_hex"
 Adept-Key (base64): "some_adept_base64"
 
 # Manually call the winapi-bin with the information
 # this program only prints the final key, not saved to disk
-wine ./ade-extract-winapi-bin.exe "some_entropy_hex" "some_device_hex"
+$ wine ./ade-extract-winapi-bin.exe "some_entropy_hex" "some_device_hex"
 decrypted "some_decrypted_key"
 
 # Run the binary again, but only the last step to get the actual key
-./ade-extract-key aes "some_decrypted_key" "some_adept_base64"
+$ ./ade-extract-key aes "some_decrypted_key" "some_adept_base64"
+Wrote key to ./ade_key.der
 
-# If successful, the key should be in
+# If successful, the key should be in the file mentioned above
 cat ./ade_key.der
 ```
+
+If you dont use the default wineprefix, then `WINEPREFIX` needs to be set to the correct prefix for all the commands shown above.
 
 ## Building
 
