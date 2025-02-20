@@ -27,7 +27,7 @@ fn encode_hex(bytes: &[u8]) -> String {
 
 #[cfg(not(windows))]
 fn main() {
-	println!("Binary only works on windows target");
+	eprintln!("Binary only works on windows target");
 	std::process::exit(-100);
 }
 
@@ -42,9 +42,6 @@ fn main() {
 
 	let entropy = &args[1];
 	let device_key = &args[2];
-
-	eprintln!("entropy: {:#?}", entropy);
-	eprintln!("device: {:#?}", device_key);
 
 	let mut entropy = decode_hex(entropy).expect("Expected to successfully decode entropy from hex");
 	let mut device_key_string = decode_hex(device_key).expect("Expected to successfully decode data from hex");
