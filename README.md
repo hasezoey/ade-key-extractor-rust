@@ -94,4 +94,4 @@ wine: Unhandled page fault ...
 
 This project requires:
 - NodeJS with `yarn` installed (when working on an main branch)
-- Rust install with `rustfmt` & `clippy` (nightly version of mentioned components), see [`fmt.sh`](./fmt.sh) and [`clippy.sh`](./clippy.sh)
+- Rust install with `rustfmt`(nightly) & `clippy`, see [`fmt.sh`](./fmt.sh) & [`rustfmt.toml`](./rustfmt.toml)
