@@ -14,7 +14,7 @@ trait Check {
 
 #[derive(Debug, Parser, Clone, PartialEq)]
 #[command(author, version, about, version = env!("PROJECT_VERSION"), long_about = None)]
-#[command(bin_name("ytdlr"))]
+#[command(bin_name("ade-extract-key"))]
 #[command(disable_help_subcommand(true))] // Disable subcommand "help", only "-h --help" should be used
 #[command(subcommand_negates_reqs(true))]
 pub struct CliDerive {
@@ -80,7 +80,7 @@ pub enum SubCommands {
 	AES(AESCli),
 }
 
-/// Import a Archive into the current Archive
+/// Resume at the AES decryption stage with the winapi decrypted key
 #[derive(Debug, Parser, Clone, PartialEq)]
 pub struct AESCli {
 	/// The key from the winapi-bin
