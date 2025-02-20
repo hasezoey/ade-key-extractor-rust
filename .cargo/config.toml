@@ -1,9 +1,9 @@
 [target.x86_64-pc-windows-msvc]
-linker = "lld"
+linker = "rust-lld"
 rustflags = [
-  "-Lnative=.xwin/crt/lib/x86_64",
-  "-Lnative=.xwin/sdk/lib/um/x86_64",
-  "-Lnative=.xwin/sdk/lib/ucrt/x86_64"
+	"-Lnative=.xwin/crt/lib/x86_64",
+	"-Lnative=.xwin/sdk/lib/um/x86_64",
+	"-Lnative=.xwin/sdk/lib/ucrt/x86_64",
 ]
 
 # required to be set when working in "winapi-bin", because cargo / rust-analyzer does not allow to set it per-crate yet
